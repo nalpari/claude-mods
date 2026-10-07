@@ -80,33 +80,22 @@ No environment variables or configuration.
 
 **Steps:**
 
-1. Clone this repository and go to this folder's parent:
+1. Install it from this repository's marketplace, in a terminal Claude Code session (see the [root README](../README.md)):
 
-   ```bash
-   git clone https://github.com/anthropics/claude-code-playground.git
-   cd claude-code-playground/claude-code/mods
+   ```text
+   /plugin install token-weather --marketplace nalpari/claude-mods
    ```
 
-2. Check the plugin:
+   Or try it for one session from a clone:
 
    ```bash
+   git clone https://github.com/nalpari/claude-mods.git
+   cd claude-mods
    claude plugin validate ./token-weather
-   ```
-
-3. Try it for one session:
-
-   ```bash
    claude --plugin-dir ./token-weather
    ```
 
-   Or install it, with the other mods here, from the local marketplace in this folder (see the [mods README](../README.md)):
-
-   ```bash
-   claude plugin marketplace add ./
-   claude plugin install token-weather@claude-code-playground-mods --scope user
-   ```
-
-4. Work as normal. The band updates after each turn.
+2. Work as normal. The band updates after each turn.
 
 ## Notes / limitations
 
