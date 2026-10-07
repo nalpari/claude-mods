@@ -4,6 +4,7 @@
   "metadata": { "description": "Claude Code mods: context window visualizations above the prompt" },
   "plugins": [
     { "name": "context-bars", "source": "./context-bars", "description": "Context window as one proportional bar above the prompt" },
-    { "name": "token-weather", "source": "./token-weather", "description": "Context window forecast above the prompt (from anthropics/claude-code-playground)" }
+    { "name": "token-weather", "source": "./token-weather", "description": "Context window forecast above the prompt (from anthropics/claude-code-playground)" },
+    { "name": "y-change", "source": "./y-change", "description": "Pane that shows each code change as a diff with a beginner-friendly explanation of why" }
   ]
 }

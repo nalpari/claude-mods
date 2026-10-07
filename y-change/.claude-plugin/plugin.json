@@ -1,0 +1,1 @@
+{ "name": "y-change", "version": "0.1.0", "description": "Pane that shows each code change Claude makes as a diff with a beginner-friendly explanation of why", "author": { "name": "devgrr" }, "types": "./types/index.d.ts" }
