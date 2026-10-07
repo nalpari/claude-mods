@@ -1,0 +1,8 @@
+{
+  "name": "claude-mods",
+  "owner": { "name": "devgrr" },
+  "plugins": [
+    { "name": "context-bars", "source": "./context-bars", "description": "Context window as one proportional bar above the prompt" },
+    { "name": "token-weather", "source": "./token-weather", "description": "Context window forecast above the prompt (from anthropics/claude-code-playground)" }
+  ]
+}
