@@ -17,6 +17,14 @@ export const register: Register = on => {
     return next(e)
   })
 
+  // /clear (or a resume) ends the session and starts the next one without a session.start: the old list is not the new session's
+  on('session.end', ($, e, next) => {
+    items = []
+    $.ui.invalidate('ui.render')
+
+    return next(e)
+  })
+
   // subagents keep their own lists: only the main loop's calls count
   on('tool.call', { tool: 'TodoWrite' }, async ($, e, next) => {
     const ran = await next(e)

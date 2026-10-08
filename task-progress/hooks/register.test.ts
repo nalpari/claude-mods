@@ -10,6 +10,7 @@ const todo = (content: string, status: 'pending' | 'in_progress' | 'completed') 
 // stands in for the engine: every task tool answers as it would, and the band beneath the plugin is another mod's
 const engine = (on: On) => {
   on('ui.render', async () => ({ type: 'Text', props: {}, children: ['engine band'] }))
+  on('session.end', async (_, e) => ({ sessionId: e.sessionId }))
   let id = 0
   on('tool.call', async (_, e) => {
     if (e.tool === 'TodoWrite') return { result: { oldTodos: [], newTodos: e.todos } }
@@ -72,4 +73,17 @@ test('nothing is drawn under a survey, or once everything is done and the turn i
   await $.tool.call({ tool: 'TodoWrite', todos: [todo('A', 'completed'), todo('B', 'completed')] })
   expect(await (await $.ui.mount(band())).find({ type: 'Text', text: /task-progress/ })).toBeUndefined()
   expect(await (await $.ui.mount(band({ isWorking: true }))).find({ type: 'Text', text: /2\/2/ })).toBeDefined()
+})
+
+test('a /clear starts the list over, so the next tasks are counted from zero', async ($, on) => {
+  engine(on)
+  await $.tool.call({ tool: 'TodoWrite', todos: [todo('A', 'completed'), todo('B', 'pending')] })
+  await $.tool.call({ tool: 'TaskCreate', subject: 'C', description: 'C' })
+  expect(await (await $.ui.mount(band({ isWorking: true }))).find({ type: 'Text', text: /1\/3/ })).toBeDefined()
+
+  await $.session.end({ reason: 'clear', sessionId: 'old', resume: { id: 'old' } })
+  expect(await (await $.ui.mount(band({ isWorking: true }))).find({ type: 'Text', text: /^task-progress {2}▱{20} {2}0\/0$/ })).toBeDefined()
+
+  await $.tool.call({ tool: 'TaskCreate', subject: 'D', description: 'D' })
+  expect(await (await $.ui.mount(band({ isWorking: true }))).find({ type: 'Text', text: /0\/1/ })).toBeDefined()
 })
