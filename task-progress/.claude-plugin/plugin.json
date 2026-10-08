@@ -1,1 +1,1 @@
-{ "name": "task-progress", "version": "0.1.2", "description": "Band above the prompt that shows the progress of Claude's task list as a bar", "author": { "name": "devgrr" } }
+{ "name": "task-progress", "version": "0.1.3", "description": "Band above the prompt that shows the progress of Claude's task list as a bar", "author": { "name": "devgrr" } }

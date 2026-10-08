@@ -20,16 +20,42 @@ const engine = (on: On) => {
   })
 }
 
-test('a todo list draws a bar, the count and the item in progress', async ($, on) => {
+test('a todo list draws a bar to the right edge, the count and the item in progress', async ($, on) => {
   engine(on)
   await $.tool.call({ tool: 'TodoWrite', todos: [todo('Build', 'completed'), todo('Test', 'in_progress'), todo('Ship', 'pending'), todo('Wrap', 'pending')] })
 
+  // label, bar and count fill the 100 columns exactly: 13 + 2 + 80 + 2 + 3
   const ui = await $.ui.mount(band())
-  expect(await ui.find({ type: 'Text', text: /▰{5}▱{15}/ })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: /1\/4/ })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: /Testing…/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^task-progress {2}█{20}░{60} {2}1\/4$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /▸ Testing…/ })).toBeDefined()
   // drawn above the band beneath, not in its place
   expect(await ui.find({ type: 'Text', text: /engine band/ })).toBeDefined()
+})
+
+test('the bar follows the width of the band, down to five cells', async ($, on) => {
+  engine(on)
+  await $.tool.call({ tool: 'TodoWrite', todos: [todo('Build', 'completed'), todo('Test', 'pending'), todo('Ship', 'pending'), todo('Wrap', 'pending')] })
+
+  expect(await (await $.ui.mount(band({ bodyColumns: 40 }))).find({ type: 'Text', text: /^task-progress {2}█{5}░{15} {2}1\/4$/ })).toBeDefined()
+  expect(await (await $.ui.mount(band({ bodyColumns: 20 }))).find({ type: 'Text', text: /^task-progress {2}█{1}░{4} {2}1\/4$/ })).toBeDefined()
+})
+
+test('the colors run blue to green along the track, whatever the fill', async ($, on) => {
+  engine(on)
+  const colors = async () => (await (await $.ui.mount(band({ isWorking: true }))).findAll({ type: 'Text', text: /^█$/ })).map(c => c.props.color)
+
+  await $.tool.call({ tool: 'TodoWrite', todos: [todo('A', 'completed'), todo('B', 'pending'), todo('C', 'pending'), todo('D', 'pending')] })
+  const quarter = await colors()
+  await $.tool.call({ tool: 'TodoWrite', todos: [todo('A', 'completed'), todo('B', 'completed')] })
+  const full = await colors()
+
+  expect(full.length).toBe(80)
+  expect(full[0]).toBe('#5b8db8')
+  expect(full[79]).toBe('#7fbf6a')
+  expect(full[40]).not.toBe(full[0])
+  expect(full[40]).not.toBe(full[79])
+  // a cell keeps its place on the track as the bar fills
+  expect(quarter).toEqual(full.slice(0, 20))
 })
 
 test('created tasks are counted as they are updated, and a deleted one leaves', async ($, on) => {
@@ -57,8 +83,7 @@ test('an empty list draws an empty bar and 0/0, even when the turn is over', asy
 
   for (const isWorking of [false, true]) {
     const ui = await $.ui.mount(band({ isWorking }))
-    expect(await ui.find({ type: 'Text', text: /▱{20}/ })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: /0\/0/ })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /^task-progress {2}░{80} {2}0\/0$/ })).toBeDefined()
   }
 })
 
