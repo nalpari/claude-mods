@@ -2,24 +2,8 @@ import type { Register } from 'claude-code'
 
 type Item = { id: string; label: string; status: 'pending' | 'in_progress' | 'completed' }
 
-// the track's colors, left to right; a cell keeps its color as the bar fills, so a fuller bar reaches further along it
-const BLUE: [number, number, number] = [0x5b, 0x8d, 0xb8]
-const TEAL: [number, number, number] = [0x4f, 0xb6, 0xb2]
-const GREEN: [number, number, number] = [0x7f, 0xbf, 0x6a]
-
-const LABEL = 'task-progress'
-// fewest cells the bar gets
-const MIN_WIDTH = 5
-
-// the color t (0..1) along the track
-const at = (t: number) => {
-  const [r, g, b] = t < 0.5 ? BLUE : TEAL
-  const [r2, g2, b2] = t < 0.5 ? TEAL : GREEN
-  const k = t < 0.5 ? t * 2 : t * 2 - 1
-  const hex = (from: number, to: number) => Math.round(from + (to - from) * k).toString(16).padStart(2, '0')
-
-  return `#${hex(r, r2)}${hex(g, g2)}${hex(b, b2)}`
-}
+// widest the bar gets, in cells
+const WIDTH = 20
 
 // the task list as the tools below last left it; TodoWrite and TaskList send the whole list,
 // TaskCreate and TaskUpdate one change. A task made before the mod loaded is unknown to
@@ -89,22 +73,20 @@ export const register: Register = on => {
 
     const { Box, Text } = $.ui.resolve(e)
     const active = items.find(i => i.status === 'in_progress')
-    const count = `${done}/${items.length}`
-    // the label, the count and the two gaps are fixed; the bar takes the rest of the row
-    const width = Math.max(MIN_WIDTH, e.props.bodyColumns - LABEL.length - count.length - 4)
+    const width = Math.max(5, Math.min(WIDTH, Math.floor(e.props.bodyColumns / 4)))
     // floor, so the bar is only full when every task is done
     const filled = items.length === 0 ? 0 : Math.floor((width * done) / items.length)
 
     return (
       <Box flexDirection="column">
         <Text wrap="truncate">
-          <Text color="claude">{LABEL}</Text>{'  '}
-          {Array.from({ length: filled }, (_, i) => <Text color={at(i / (width - 1))}>█</Text>)}
-          <Text dimColor>{'░'.repeat(width - filled)}</Text>
+          <Text color="claude">task-progress</Text>{'  '}
+          <Text color="success">{'▰'.repeat(filled)}</Text>
+          <Text dimColor>{'▱'.repeat(width - filled)}</Text>
           {'  '}
-          <Text bold>{count}</Text>
+          <Text bold>{`${done}/${items.length}`}</Text>
+          {active && <Text dimColor>{`  ·  ${active.label}…`}</Text>}
         </Text>
-        {active && <Text wrap="truncate" dimColor>{`▸ ${active.label}…`}</Text>}
         {below}
       </Box>
     )
