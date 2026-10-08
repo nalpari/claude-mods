@@ -6,7 +6,7 @@ Claude Code mod 모음. 이 저장소 자체가 마켓플레이스(`.claude-plug
 |-----|------|
 | [`context-bars`](context-bars) | 컨텍스트 윈도우를 카테고리별 비례 막대 하나로 프롬프트 위에 표시 |
 | [`token-weather`](token-weather) | 컨텍스트 윈도우 사용량을 날씨 아이콘·퍼센트·최근 턴 차트로 프롬프트 위에 표시 |
-| [`y-change`](y-change) | Claude가 코드를 수정할 때마다 diff와 변경 이유(처음 보는 언어의 문법 설명 포함)를 오른쪽 pane에 표시 |
+| [`y-change`](y-change) | Claude가 코드를 수정할 때마다 diff와 변경 이유(처음 보는 언어의 문법 설명 포함)를 오른쪽 pane에 표시 (기본은 숨김, `/y-change`로 열기/닫기) |
 
 ## 설치
 

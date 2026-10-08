@@ -55,7 +55,6 @@ const parse = (text: string) => {
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'y-change', description: '코드 변경 이유 pane 열기/닫기' })
-    void $.ui.open({ id: PANE, title: TITLE })
 
     return next(e)
   })
