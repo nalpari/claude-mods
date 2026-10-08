@@ -1,9 +1,13 @@
+import type { On } from 'claude-code'
 import { expect, test } from 'claude-code/testing'
 
 const cat = (name: string, tokens: number, kind: 'used' | 'free', color: string) =>
   ({ name, tokens, color, isDeferred: false, kind })
 
 const props = { hasSurvey: false, isWorking: false, maxRows: 10, bodyColumns: 100, scroll: { offset: 0, bodyRows: 10 }, view: {} }
+
+// the band beneath the plugin, another mod's: it is kept, not replaced
+const beneath = (on: On) => on('ui.render', async () => ({ type: 'Text', props: {}, children: ['band beneath'] }))
 
 const usage = (autoCompactThreshold?: number) => ({ value: {
   startedAt: 0,
@@ -23,6 +27,7 @@ const usage = (autoCompactThreshold?: number) => ({ value: {
 } })
 
 test('band draws a header, one full-width bar with a compaction marker, and a legend', async ($, on) => {
+  beneath(on)
   on('session.usage', async () => usage(900))
 
   const ui = await $.ui.mount({ plugin: 'context-bars', surface: 'terminal', component: 'AbovePrompt', props })
@@ -35,6 +40,7 @@ test('band draws a header, one full-width bar with a compaction marker, and a le
   expect(await ui.find({ type: 'Text', text: /50%/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /messages 400/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /free 500/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /band beneath/ })).toBeDefined()
 })
 
 test('the empty track never shares a color with a used segment', async ($, on) => {
@@ -44,6 +50,7 @@ test('the empty track never shares a color with a used segment', async ($, on) =
     cat('System prompt', 100, 'used', 'promptBorder'), cat('System tools', 100, 'used', 'inactive'),
     cat('Messages', 300, 'used', 'purple_FOR_SUBAGENTS_ONLY'), cat('Free space', 500, 'free', 'promptBorder'),
   ]
+  beneath(on)
   on('session.usage', async () => real)
 
   const ui = await $.ui.mount({ plugin: 'context-bars', surface: 'terminal', component: 'AbovePrompt', props })
@@ -55,6 +62,7 @@ test('the empty track never shares a color with a used segment', async ($, on) =
 })
 
 test('without auto-compaction there is no marker', async ($, on) => {
+  beneath(on)
   on('session.usage', async () => usage())
 
   const ui = await $.ui.mount({ plugin: 'context-bars', surface: 'terminal', component: 'AbovePrompt', props })
@@ -65,6 +73,7 @@ test('without auto-compaction there is no marker', async ($, on) => {
 })
 
 test('the desktop keeps the engine\'s colors', async ($, on) => {
+  beneath(on)
   on('session.usage', async () => usage(900))
 
   const ui = await $.ui.mount({ plugin: 'context-bars', surface: 'desktop', component: 'AbovePrompt', props })

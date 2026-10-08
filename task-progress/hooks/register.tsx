@@ -62,12 +62,14 @@ export const register: Register = on => {
     return ran
   })
 
-  on('ui.render', { component: 'AbovePrompt' }, ($, e, next) => {
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+    // the band is one instance: a hook that answers without next hides every other mod's band, so draw above what is beneath
+    const below = await next(e)
     const done = items.filter(i => i.status === 'completed').length
     const isFinished = items.length > 0 && done === items.length
 
     // an empty list shows 0/0; a finished one stays while the turn runs, then goes
-    if (e.props.hasSurvey || (isFinished && !e.props.isWorking)) return next(e)
+    if (e.props.hasSurvey || (isFinished && !e.props.isWorking)) return below
 
     const { Box, Text } = $.ui.resolve(e)
     const active = items.find(i => i.status === 'in_progress')
@@ -76,7 +78,7 @@ export const register: Register = on => {
     const filled = items.length === 0 ? 0 : Math.floor((width * done) / items.length)
 
     return (
-      <Box>
+      <Box flexDirection="column">
         <Text wrap="truncate">
           <Text color="claude">task-progress</Text>{'  '}
           <Text color="success">{'▰'.repeat(filled)}</Text>
@@ -85,6 +87,7 @@ export const register: Register = on => {
           <Text bold>{`${done}/${items.length}`}</Text>
           {active && <Text dimColor>{`  ·  ${active.label}…`}</Text>}
         </Text>
+        {below}
       </Box>
     )
   })

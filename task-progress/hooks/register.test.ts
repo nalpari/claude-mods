@@ -7,8 +7,9 @@ const band = (over: Partial<typeof props> = {}) =>
 
 const todo = (content: string, status: 'pending' | 'in_progress' | 'completed') => ({ content, status, activeForm: `${content}ing` })
 
-// stands in for the engine: every task tool answers as it would
+// stands in for the engine: every task tool answers as it would, and the band beneath the plugin is another mod's
 const engine = (on: On) => {
+  on('ui.render', async () => ({ type: 'Text', props: {}, children: ['engine band'] }))
   let id = 0
   on('tool.call', async (_, e) => {
     if (e.tool === 'TodoWrite') return { result: { oldTodos: [], newTodos: e.todos } }
@@ -27,6 +28,8 @@ test('a todo list draws a bar, the count and the item in progress', async ($, on
   expect(await ui.find({ type: 'Text', text: /▰{5}▱{15}/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /1\/4/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /Testing…/ })).toBeDefined()
+  // drawn above the band beneath, not in its place
+  expect(await ui.find({ type: 'Text', text: /engine band/ })).toBeDefined()
 })
 
 test('created tasks are counted as they are updated, and a deleted one leaves', async ($, on) => {
@@ -61,8 +64,6 @@ test('an empty list draws an empty bar and 0/0, even when the turn is over', asy
 
 test('nothing is drawn under a survey, or once everything is done and the turn is over', async ($, on) => {
   engine(on)
-  // what the engine draws when the plugin passes
-  on('ui.render', async () => ({ type: 'Text', props: {}, children: ['engine band'] }))
 
   await $.tool.call({ tool: 'TodoWrite', todos: [] })
   const survey = await $.ui.mount(band({ hasSurvey: true }))

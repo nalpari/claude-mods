@@ -36,10 +36,12 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+    // the band is one instance: a hook that answers without next hides every other mod's band, so draw above what is beneath
+    const below = await next(e)
     const { context } = await $.session.usage({ breakdown: 'summary' })
     const b = context.breakdown
 
-    if (e.props.hasSurvey || !b) return next(e)
+    if (e.props.hasSurvey || !b) return below
 
     const { Box, Text } = $.ui.resolve(e)
     // deferred rows sit outside the window and the buffer is drawn as part of the track
@@ -49,7 +51,7 @@ export const register: Register = on => {
     const track = 'subtle'
     const found = b.categories.find(c => c.kind === 'free')
     const free = found && { ...found, color: track }
-    if (used.length === 0) return next(e)
+    if (used.length === 0) return below
 
     const total = Math.max(b.rawMaxTokens, b.totalTokens)
     const pct = (n: number) => Math.round((n / total) * 100)
@@ -73,6 +75,7 @@ export const register: Register = on => {
 
     return (
       <Box flexDirection="column">
+        {below}
         <Box justifyContent="space-between">
           <Text wrap="truncate">
             <Text color="claude">◆</Text> <Text bold>context</Text>
