@@ -64,16 +64,16 @@ export const register: Register = on => {
 
   on('ui.render', { component: 'AbovePrompt' }, ($, e, next) => {
     const done = items.filter(i => i.status === 'completed').length
-    const isFinished = done === items.length
+    const isFinished = items.length > 0 && done === items.length
 
-    // a finished list stays while the turn runs, then goes
-    if (e.props.hasSurvey || items.length === 0 || (isFinished && !e.props.isWorking)) return next(e)
+    // an empty list shows 0/0; a finished one stays while the turn runs, then goes
+    if (e.props.hasSurvey || (isFinished && !e.props.isWorking)) return next(e)
 
     const { Box, Text } = $.ui.resolve(e)
     const active = items.find(i => i.status === 'in_progress')
     const width = Math.max(5, Math.min(WIDTH, Math.floor(e.props.bodyColumns / 4)))
     // floor, so the bar is only full when every task is done
-    const filled = Math.floor((width * done) / items.length)
+    const filled = items.length === 0 ? 0 : Math.floor((width * done) / items.length)
 
     return (
       <Box>

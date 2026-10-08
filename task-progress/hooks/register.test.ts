@@ -48,17 +48,26 @@ test('TaskList replaces what was tracked', async ($, on) => {
   expect(await (await $.ui.mount(band({ isWorking: true }))).find({ type: 'Text', text: /1\/1/ })).toBeDefined()
 })
 
-test('nothing is drawn without a list, under a survey, or once everything is done and the turn is over', async ($, on) => {
+test('an empty list draws an empty bar and 0/0, even when the turn is over', async ($, on) => {
+  engine(on)
+  await $.tool.call({ tool: 'TodoWrite', todos: [] })
+
+  for (const isWorking of [false, true]) {
+    const ui = await $.ui.mount(band({ isWorking }))
+    expect(await ui.find({ type: 'Text', text: /▱{20}/ })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /0\/0/ })).toBeDefined()
+  }
+})
+
+test('nothing is drawn under a survey, or once everything is done and the turn is over', async ($, on) => {
   engine(on)
   // what the engine draws when the plugin passes
   on('ui.render', async () => ({ type: 'Text', props: {}, children: ['engine band'] }))
-  await $.tool.call({ tool: 'TodoWrite', todos: [] })
-  const empty = await $.ui.mount(band({ isWorking: true }))
-  expect(await empty.find({ type: 'Text', text: /task-progress/ })).toBeUndefined()
-  expect(await empty.find({ type: 'Text', text: /engine band/ })).toBeDefined()
 
-  await $.tool.call({ tool: 'TodoWrite', todos: [todo('A', 'completed'), todo('B', 'in_progress')] })
-  expect(await (await $.ui.mount(band({ hasSurvey: true }))).find({ type: 'Text', text: /task-progress/ })).toBeUndefined()
+  await $.tool.call({ tool: 'TodoWrite', todos: [] })
+  const survey = await $.ui.mount(band({ hasSurvey: true }))
+  expect(await survey.find({ type: 'Text', text: /task-progress/ })).toBeUndefined()
+  expect(await survey.find({ type: 'Text', text: /engine band/ })).toBeDefined()
 
   await $.tool.call({ tool: 'TodoWrite', todos: [todo('A', 'completed'), todo('B', 'completed')] })
   expect(await (await $.ui.mount(band())).find({ type: 'Text', text: /task-progress/ })).toBeUndefined()
