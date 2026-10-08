@@ -5,6 +5,7 @@
   "plugins": [
     { "name": "context-bars", "source": "./context-bars", "description": "Context window as one proportional bar above the prompt" },
     { "name": "token-weather", "source": "./token-weather", "description": "Context window forecast above the prompt (from anthropics/claude-code-playground)" },
-    { "name": "y-change", "source": "./y-change", "description": "Pane that shows each code change as a diff with a beginner-friendly explanation of why" }
+    { "name": "y-change", "source": "./y-change", "description": "Pane that shows each code change as a diff with a beginner-friendly explanation of why" },
+    { "name": "task-progress", "source": "./task-progress", "description": "Progress bar of Claude's task list above the prompt" }
   ]
 }
