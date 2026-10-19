@@ -1,0 +1,1 @@
+{ "name": "enhance-prompt", "version": "0.1.0", "description": "Rewrites each prompt so the AI understands it better, shows it above the prompt box, and sends the rewrite only if you allow it", "author": { "name": "devgrr" } }
