@@ -60,9 +60,11 @@ const enhance = async ($: EngineInterface, text: string) => {
   return enhanced === '' || enhanced === text.trim() ? undefined : enhanced
 }
 
-// cleared first, so a second press cannot send it twice; a prompt that cannot be sent goes back to the box
+// cleared first, so a second press cannot send it twice; the box still holds what was typed (the drop leaves it), so it is emptied too,
+// and a prompt that cannot be sent goes back to it
 const decide = async ($: EngineInterface, text: string) => {
   setStage($, { kind: 'idle' })
+  await $.prompt.fill({ text: '' })
   await $.prompt.submit({ text, asUser: true }).catch(() => $.prompt.fill({ text }))
 }
 

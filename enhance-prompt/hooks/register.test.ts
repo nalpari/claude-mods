@@ -13,6 +13,7 @@ const IMPROVED = '로그인 폼에서 빈 비밀번호가 통과되는 버그를
 const engine = (on: On, model: { fork?: ModelForkResult; complete?: ModelCompleteResult } = {}) => {
   const entered: string[] = []
   const statuses: (string | undefined)[] = []
+  const filled: string[] = []
   const answered = { isAnswered: true, text: IMPROVED, usage } as const
   mock.store(on)
   on('model.fork', async () => ({ value: model.fork ?? answered }))
@@ -22,6 +23,11 @@ const engine = (on: On, model: { fork?: ModelForkResult; complete?: ModelComplet
 
     return { value: undefined }
   })
+  on('prompt.fill', async (_, e) => {
+    filled.push(e.text)
+
+    return { isFilled: true }
+  })
   on('prompt.submit', async (_, e) => {
     entered.push(e.text)
 
@@ -30,11 +36,11 @@ const engine = (on: On, model: { fork?: ModelForkResult; complete?: ModelComplet
   on('ui.render', async () => ({ type: 'Text', props: {}, children: ['engine band'] }))
   on('session.end', async (_, e) => ({ sessionId: e.sessionId }))
 
-  return { entered, statuses }
+  return { entered, statuses, filled }
 }
 
-test('Enter holds the prompt; 허용 sends the improved one', async ($, on) => {
-  const { entered } = engine(on)
+test('Enter holds the prompt; 허용 sends the improved one and empties the box', async ($, on) => {
+  const { entered, filled } = engine(on)
 
   const held = await $.prompt.submit(typed(ORIGINAL))
   expect(held.drop).toBeDefined()
@@ -48,16 +54,18 @@ test('Enter holds the prompt; 허용 sends the improved one', async ($, on) => {
 
   await ui.press({ key: 'accept' })
   expect(entered).toEqual([IMPROVED])
+  expect(filled).toEqual([''])
   // decided: the band is gone
   expect(await (await $.ui.mount(band())).find({ key: 'accept' })).toBeUndefined()
 })
 
-test('거부 sends the prompt as typed', async ($, on) => {
-  const { entered } = engine(on)
+test('거부 sends the prompt as typed and empties the box', async ($, on) => {
+  const { entered, filled } = engine(on)
   await $.prompt.submit(typed(ORIGINAL))
 
   await (await $.ui.mount(band())).press({ key: 'reject' })
   expect(entered).toEqual([ORIGINAL])
+  expect(filled).toEqual([''])
 })
 
 test('a model that changes nothing, or cannot answer, sends the prompt as typed', async ($, on) => {
