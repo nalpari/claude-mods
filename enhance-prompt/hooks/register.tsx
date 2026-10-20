@@ -26,7 +26,11 @@ const setStage = ($: EngineInterface, next: Stage) => {
   $.ui.invalidate('ui.render')
 }
 
-const showStatus = ($: EngineInterface) => $.ui.status(`enhance-prompt: ${isOn ? 'ON' : 'OFF'}`)
+const toggle = async ($: EngineInterface) => {
+  isOn = !isOn
+  await $.store.set('isOn', isOn)
+  $.ui.invalidate('ui.render')
+}
 
 // only the person's own Enter, outside a running turn, on plain text
 const isSkipped = (e: PromptSubmitInput) => {
@@ -72,8 +76,7 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'enhance-prompt', description: '프롬프트 개선 켜기/끄기' })
     isOn = (await $.store.get('isOn')) !== false
-    stage = { kind: 'idle' }
-    showStatus($)
+    setStage($, { kind: 'idle' })
 
     return next(e)
   })
@@ -86,9 +89,7 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'enhance-prompt' }, async $ => {
-    isOn = !isOn
-    await $.store.set('isOn', isOn)
-    showStatus($)
+    await toggle($)
 
     return { text: `프롬프트 개선을 ${isOn ? '켰' : '껐'}습니다.` }
   })
@@ -109,6 +110,23 @@ export const register: Register = on => {
     setStage($, { kind: 'review', original: e.text, enhanced })
 
     return { drop: '개선된 프롬프트를 입력창 위에서 확인해 주세요.' }
+  })
+
+  // the status line is text only and cannot be pressed, so the switch is a Button drawn beside the footer's mode labels;
+  // the desktop's footer is a chip that is there only while a mode is on, so there the switch sits in the band above the prompt
+  on('ui.render', { component: 'SessionMode' }, async ($, e, next) => {
+    const below = await next(e)
+    if (e.surface !== 'terminal') return below
+
+    const { Box, Button, Text } = $.ui.resolve(e)
+
+    return (
+      <Box>
+        {below}
+        <Text>{' '}</Text>
+        <Button key="toggle" label={`enhance-prompt: ${isOn ? 'ON' : 'OFF'}`} variant={isOn ? 'primary' : 'secondary'} onPress={() => toggle($)} />
+      </Box>
+    )
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
@@ -141,6 +159,22 @@ export const register: Register = on => {
           <Text dimColor>{'  거부하면 입력한 원본을 보냅니다'}</Text>
         </Box>
         {below}
+      </Box>
+    )
+  })
+
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+    const below = await next(e)
+    if (e.surface === 'terminal' || e.props.hasSurvey) return below
+
+    const { Box, Button } = $.ui.resolve(e)
+
+    return (
+      <Box flexDirection="column">
+        {below}
+        <Box>
+          <Button key="toggle" label={`enhance-prompt: ${isOn ? 'ON' : 'OFF'}`} variant={isOn ? 'primary' : 'secondary'} onPress={() => toggle($)} />
+        </Box>
       </Box>
     )
   })
