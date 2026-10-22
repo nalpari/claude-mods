@@ -76,7 +76,7 @@ export const register: Register = on => {
       <Box flexDirection="column">
         {list.length === 0 && <Text dimColor>설치된 mod가 없습니다.</Text>}
         {list.map(m => (
-          <Box>
+          <Box marginBottom={1}>
             {/* switching itself off would take this pane, and the way back, with it */}
             {m.id.split('@')[0] === $.plugin.name
               ? <Text dimColor>{'  -  '}</Text>
