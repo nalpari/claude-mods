@@ -64,11 +64,9 @@ const enhance = async ($: EngineInterface, text: string) => {
   return enhanced === '' || enhanced === text.trim() ? undefined : enhanced
 }
 
-// cleared first, so a second press cannot send it twice; the box still holds what was typed (the drop leaves it), so it is emptied too,
-// and a prompt that cannot be sent goes back to it
+// cleared first, so a second press cannot send it twice; a prompt that cannot be sent goes back to the box
 const decide = async ($: EngineInterface, text: string) => {
   setStage($, { kind: 'idle' })
-  await $.prompt.fill({ text: '' })
   await $.prompt.submit({ text, asUser: true }).catch(() => $.prompt.fill({ text }))
 }
 
@@ -107,6 +105,8 @@ export const register: Register = on => {
     }
     if (enhanced === undefined) return next(e)
 
+    // the drop leaves what was typed in the box; the review shows it as 원본, so empty the box before the review is drawn
+    await $.prompt.fill({ text: '' })
     setStage($, { kind: 'review', original: e.text, enhanced })
 
     return { drop: '개선된 프롬프트를 입력창 위에서 확인해 주세요.' }

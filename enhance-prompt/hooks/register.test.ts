@@ -35,12 +35,14 @@ const engine = (on: On, model: { fork?: ModelForkResult; complete?: ModelComplet
   return { entered, filled }
 }
 
-test('Enter holds the prompt; 허용 sends the improved one and empties the box', async ($, on) => {
+test('Enter holds the prompt and empties the box; 허용 sends the improved one', async ($, on) => {
   const { entered, filled } = engine(on)
 
   const held = await $.prompt.submit(typed(ORIGINAL))
   expect(held.drop).toBeDefined()
   expect(entered).toEqual([])
+  // emptied while the review is up, not only once it is decided
+  expect(filled).toEqual([''])
 
   const ui = await $.ui.mount(band())
   expect(await ui.find({ type: 'Text', text: ORIGINAL })).toBeDefined()
@@ -55,7 +57,7 @@ test('Enter holds the prompt; 허용 sends the improved one and empties the box'
   expect(await (await $.ui.mount(band())).find({ key: 'accept' })).toBeUndefined()
 })
 
-test('거부 sends the prompt as typed and empties the box', async ($, on) => {
+test('거부 sends the prompt as typed', async ($, on) => {
   const { entered, filled } = engine(on)
   await $.prompt.submit(typed(ORIGINAL))
 
