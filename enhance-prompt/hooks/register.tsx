@@ -163,23 +163,6 @@ export const register: Register = on => {
     return (await converse($, e.text, [])) ?? next(e)
   })
 
-  // the status line is text only and cannot be pressed, so the switch is a Button drawn beside the footer's mode labels;
-  // the desktop's footer is a chip that is there only while a mode is on, so there the switch sits in the band above the prompt
-  on('ui.render', { component: 'SessionMode' }, async ($, e, next) => {
-    const below = await next(e)
-    if (e.surface !== 'terminal') return below
-
-    const { Box, Button, Text } = $.ui.resolve(e)
-
-    return (
-      <Box>
-        {below}
-        <Text>{' '}</Text>
-        <Button key="toggle" label={`enhance-prompt: ${isOn ? 'ON' : 'OFF'}`} variant={isOn ? 'primary' : 'secondary'} onPress={() => toggle($)} />
-      </Box>
-    )
-  })
-
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     // the band is one instance: a hook that answers without next hides every other mod's band, so draw above what is beneath
     const below = await next(e)
@@ -228,6 +211,8 @@ export const register: Register = on => {
     )
   })
 
+  // the desktop's footer is a chip that is there only while a mode is on, so there the switch sits in the band above the prompt;
+  // the terminal has none: mod-switch's pane or /enhance-prompt switches it
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     const below = await next(e)
     if (e.surface === 'terminal' || e.props.hasSurvey) return below

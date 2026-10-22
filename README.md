@@ -7,7 +7,7 @@ Claude Code mod 모음. 이 저장소 자체가 마켓플레이스(`.claude-plug
 | [`context-bars`](context-bars) | 컨텍스트 윈도우를 카테고리별 비례 막대 하나로 프롬프트 위에 표시 |
 | [`token-weather`](token-weather) | 컨텍스트 윈도우 사용량을 날씨 아이콘·퍼센트·최근 턴 차트로 프롬프트 위에 표시 |
 | [`y-change`](y-change) | Claude가 코드를 수정할 때마다 diff와 변경 이유(처음 보는 언어의 문법 설명 포함)를 오른쪽 pane에 표시 (기본은 숨김, `/y-change`로 열기/닫기) |
-| [`enhance-prompt`](enhance-prompt) | 입력한 프롬프트를 AI가 더 잘 알아듣도록 `[THE JOB]/[THE WHY]/[GUARDRAILS]/[DONE MEAN]` 구조로 개선해 입력창 위에 보여주고(불명확한 부분은 먼저 입력창 위 질문으로 되묻고 답하면 반복, 최대 3개), [허용]하면 개선본을, [거부]하면 원본을 전송. `enhance-prompt: ON/OFF` 버튼(터미널은 푸터, 데스크탑은 입력창 위)을 눌러, 또는 `/enhance-prompt`로 켜기/끄기 |
+| [`enhance-prompt`](enhance-prompt) | 입력한 프롬프트를 AI가 더 잘 알아듣도록 `[THE JOB]/[THE WHY]/[GUARDRAILS]/[DONE MEAN]` 구조로 개선해 입력창 위에 보여주고(불명확한 부분은 먼저 입력창 위 질문으로 되묻고 답하면 반복, 최대 3개), [허용]하면 개선본을, [거부]하면 원본을 전송. `enhance-prompt: ON/OFF` 버튼(데스크탑 입력창 위)을 눌러, 또는 `/enhance-prompt`로 켜기/끄기 |
 | [`task-progress`](task-progress) | Claude의 작업 목록(TodoWrite·TaskCreate/TaskUpdate) 진행률을 막대와 `완료/전체`, 진행 중인 항목 이름으로 프롬프트 위(스피너 아래)에 표시 |
 | [`mod-switch`](mod-switch) | 설치된 mod 목록을 오른쪽 pane에 토글 스위치와 함께 표시하고, 스위치를 누르면 해당 mod를 켜거나 끔 (기본은 숨김, `/mod-switch`로 열기/닫기) |
 

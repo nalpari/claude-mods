@@ -4,7 +4,6 @@ import { expect, mock, test } from 'claude-code/testing'
 const usage = { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 }
 const props = { hasSurvey: false, isWorking: false, maxRows: 10, bodyColumns: 100, scroll: { offset: 0, bodyRows: 10 }, view: {} }
 const band = () => ({ plugin: 'enhance-prompt', surface: 'terminal', component: 'AbovePrompt', props }) as const
-const footer = (surface: 'terminal' | 'desktop' = 'terminal') => ({ plugin: 'enhance-prompt', surface, component: 'SessionMode', props: { modes: [] } }) as const
 const desktopBand = (over: object = {}) => ({ plugin: 'enhance-prompt', surface: 'desktop', component: 'AbovePrompt', props: { ...props, ...over } }) as const
 const typed = (text: string, over: object = {}) => ({ text, wait: false, origin: { kind: 'composer' }, ...over }) as const
 
@@ -178,46 +177,23 @@ test('prompts that are not plain typed text go through untouched', async ($, on)
   expect(entered).toEqual(sent.map(one => one.text))
 })
 
-test('/enhance-prompt turns it off and on, and the footer switch says which', async ($, on) => {
+test('/enhance-prompt turns it off and on', async ($, on) => {
   const { entered } = engine(on)
-  const label = async () => (await (await $.ui.mount(footer())).find({ key: 'toggle' }))?.props.label
   const run = () => $.command.run({ command: 'enhance-prompt', args: '', origin: { kind: 'composer' }, presentation: { isFullscreen: false, columns: 80 } })
 
   await run()
-  expect(await label()).toBe('enhance-prompt: OFF')
   await $.prompt.submit(typed(ORIGINAL))
   expect(entered).toEqual([ORIGINAL])
 
   await run()
-  expect(await label()).toBe('enhance-prompt: ON')
   expect((await $.prompt.submit(typed(ORIGINAL))).drop).toBeDefined()
 })
 
-test('pressing the footer switch turns it off and on', async ($, on) => {
-  const { entered } = engine(on)
-  const label = async () => (await (await $.ui.mount(footer())).find({ key: 'toggle' }))?.props.label
-  const press = async () => (await $.ui.mount(footer())).press({ key: 'toggle' })
-
-  expect(await label()).toBe('enhance-prompt: ON')
-  expect(await (await $.ui.mount(footer())).find({ type: 'Text', text: /engine band/ })).toBeDefined()
-
-  await press()
-  expect(await label()).toBe('enhance-prompt: OFF')
-  await $.prompt.submit(typed(ORIGINAL))
-  expect(entered).toEqual([ORIGINAL])
-
-  await press()
-  expect(await label()).toBe('enhance-prompt: ON')
-  expect((await $.prompt.submit(typed(ORIGINAL))).drop).toBeDefined()
-})
-
-// the desktop draws the footer's mode labels as a chip that is there only while a mode is on, so the switch cannot rely on it: it sits in the band
-test('on the desktop the switch is in the band above the prompt, not the footer', async ($, on) => {
+test('on the desktop the switch is in the band above the prompt', async ($, on) => {
   const { entered } = engine(on)
   const toggle = async () => (await $.ui.mount(desktopBand())).find({ key: 'toggle' })
 
   expect((await toggle())?.props.label).toBe('enhance-prompt: ON')
-  expect(await (await $.ui.mount(footer('desktop'))).find({ key: 'toggle' })).toBeUndefined()
 
   await (await $.ui.mount(desktopBand())).press({ key: 'toggle' })
   expect((await toggle())?.props.label).toBe('enhance-prompt: OFF')
@@ -234,7 +210,7 @@ test('on the desktop the switch is in the band above the prompt, not the footer'
   expect(await ui.find({ key: 'toggle' })).toBeDefined()
 })
 
-test('one switch per surface: the terminal band has none, and a survey keeps the desktop band', async ($, on) => {
+test('the switch is the desktop band only: the terminal band has none, and a survey keeps the desktop band', async ($, on) => {
   engine(on)
 
   expect(await (await $.ui.mount(band())).find({ key: 'toggle' })).toBeUndefined()
