@@ -1,0 +1,1 @@
+{ "name": "mod-switch", "version": "0.1.0", "description": "Pane that lists the installed mods with a switch each to turn them on or off", "author": { "name": "devgrr" }, "types": "./types/index.d.ts" }

@@ -9,6 +9,7 @@ Claude Code mod 모음. 이 저장소 자체가 마켓플레이스(`.claude-plug
 | [`y-change`](y-change) | Claude가 코드를 수정할 때마다 diff와 변경 이유(처음 보는 언어의 문법 설명 포함)를 오른쪽 pane에 표시 (기본은 숨김, `/y-change`로 열기/닫기) |
 | [`enhance-prompt`](enhance-prompt) | 입력한 프롬프트를 AI가 더 잘 알아듣도록 `[THE JOB]/[THE WHY]/[GUARDRAILS]/[DONE MEAN]` 구조로 개선해 입력창 위에 보여주고(불명확한 부분은 먼저 입력창 위 질문으로 되묻고 답하면 반복, 최대 3개), [허용]하면 개선본을, [거부]하면 원본을 전송. `enhance-prompt: ON/OFF` 버튼(터미널은 푸터, 데스크탑은 입력창 위)을 눌러, 또는 `/enhance-prompt`로 켜기/끄기 |
 | [`task-progress`](task-progress) | Claude의 작업 목록(TodoWrite·TaskCreate/TaskUpdate) 진행률을 막대와 `완료/전체`, 진행 중인 항목 이름으로 프롬프트 위(스피너 아래)에 표시 |
+| [`mod-switch`](mod-switch) | 설치된 mod 목록을 오른쪽 pane에 토글 스위치와 함께 표시하고, 스위치를 누르면 해당 mod를 켜거나 끔 (기본은 숨김, `/mod-switch`로 열기/닫기) |
 
 ## 설치
 
@@ -20,6 +21,7 @@ Claude Code mod 모음. 이 저장소 자체가 마켓플레이스(`.claude-plug
 /plugin install y-change --marketplace nalpari/claude-mods
 /plugin install task-progress --marketplace nalpari/claude-mods
 /plugin install enhance-prompt --marketplace nalpari/claude-mods
+/plugin install mod-switch --marketplace nalpari/claude-mods
 ```
 
 처음이면 `Add marketplace?` 에 `y` 로 답하고 scope(user 권장)를 고르면 `Installed <mod>. Plugin is now active.` 가 뜬다. 재시작이나 리로드 없이 바로 적용되고, user scope 는 이후 세션에도 유지된다. 마켓플레이스를 이미 추가했다면 확인 질문은 건너뛴다.
