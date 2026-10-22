@@ -9,15 +9,22 @@ const desktopBand = (over: object = {}) => ({ plugin: 'enhance-prompt', surface:
 const typed = (text: string, over: object = {}) => ({ text, wait: false, origin: { kind: 'composer' }, ...over }) as const
 
 const ORIGINAL = '로그인 버그 좀 고쳐줘 제발'
-const IMPROVED = '로그인 폼에서 빈 비밀번호가 통과되는 버그를 고쳐줘'
+const IMPROVED = '[THE JOB]\n로그인 폼에서 빈 비밀번호가 통과되는 버그를 고쳐줘\n\n[THE WHY]\n-\n\n[GUARDRAILS]\n-\n\n[DONE MEAN]\n-'
 
-// stands in for the engine: a `$` call is answered as { value }, the model answers as the test says, and every prompt that gets through is recorded
-const engine = (on: On, model: { fork?: ModelForkResult; complete?: ModelCompleteResult } = {}) => {
+// stands in for the engine: a `$` call is answered as { value }, the model answers as the test says (`replies` one per call, then fork or the improved prompt),
+// and every prompt that gets through, and every prompt the model is asked, is recorded
+const engine = (on: On, model: { fork?: ModelForkResult; complete?: ModelCompleteResult; replies?: string[] } = {}) => {
   const entered: string[] = []
   const filled: string[] = []
+  const asked: string[] = []
+  const replies = [...(model.replies ?? [])]
   const answered = { isAnswered: true, text: IMPROVED, usage } as const
   mock.store(on)
-  on('model.fork', async () => ({ value: model.fork ?? answered }))
+  on('model.fork', async (_, e) => {
+    asked.push(e.prompt)
+
+    return { value: replies.length > 0 ? { ...answered, text: replies.shift()! } : model.fork ?? answered }
+  })
   on('model.complete', async () => ({ value: model.complete ?? answered }))
   on('prompt.fill', async (_, e) => {
     filled.push(e.text)
@@ -32,7 +39,7 @@ const engine = (on: On, model: { fork?: ModelForkResult; complete?: ModelComplet
   on('ui.render', async () => ({ type: 'Text', props: {}, children: ['engine band'] }))
   on('session.end', async (_, e) => ({ sessionId: e.sessionId }))
 
-  return { entered, filled }
+  return { entered, filled, asked }
 }
 
 test('Enter holds the prompt and empties the box; 허용 sends the improved one', async ($, on) => {
@@ -55,6 +62,68 @@ test('Enter holds the prompt and empties the box; 허용 sends the improved one'
   expect(filled).toEqual([''])
   // decided: the band is gone
   expect(await (await $.ui.mount(band())).find({ key: 'accept' })).toBeUndefined()
+})
+
+const QUESTION_1 = 'QUESTION: 어느 파일의 로그인인가요?'
+const QUESTION_2 = 'QUESTION: 어떤 증상인가요?'
+const ANSWER = 'src/login.ts 입니다'
+
+test('the model is asked for the four-part prompt, and a prompt it needs nothing more for goes straight to the review', async ($, on) => {
+  const { asked } = engine(on)
+  await $.prompt.submit(typed(ORIGINAL))
+
+  for (const heading of ['[THE JOB]', '[THE WHY]', '[GUARDRAILS]', '[DONE MEAN]']) expect(asked[0]).toContain(heading)
+  const ui = await $.ui.mount(band())
+  expect(await ui.find({ key: 'accept' })).toBeDefined()
+  expect(await ui.find({ key: 'skip' })).toBeUndefined()
+})
+
+test('a question waits above the prompt; the answer clears it, the next question or the review follows', async ($, on) => {
+  const { entered, filled, asked } = engine(on, { replies: [QUESTION_1, QUESTION_2] })
+
+  expect((await $.prompt.submit(typed(ORIGINAL))).drop).toBeDefined()
+  let ui = await $.ui.mount(band())
+  expect(await ui.find({ type: 'Text', text: /어느 파일의 로그인인가요\?/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: ORIGINAL })).toBeDefined()
+  expect(await ui.find({ key: 'accept' })).toBeUndefined()
+
+  // the answer is not sent: it is held, the question is replaced, and the model is asked again with it
+  expect((await $.prompt.submit(typed(ANSWER))).drop).toBeDefined()
+  ui = await $.ui.mount(band())
+  expect(await ui.find({ type: 'Text', text: /어느 파일의 로그인인가요\?/ })).toBeUndefined()
+  expect(await ui.find({ type: 'Text', text: /어떤 증상인가요\?/ })).toBeDefined()
+  expect(asked[1]).toContain(`Q: ${QUESTION_1.slice('QUESTION: '.length)}\nA: ${ANSWER}`)
+
+  // the model has nothing more to ask: the review, with the improved prompt
+  await $.prompt.submit(typed('빈 비밀번호가 통과돼요'))
+  ui = await $.ui.mount(band())
+  expect(await ui.find({ type: 'Text', text: /어떤 증상인가요\?/ })).toBeUndefined()
+  expect(await ui.find({ type: 'Text', text: IMPROVED })).toBeDefined()
+  expect(entered).toEqual([])
+  expect(filled).toEqual(['', '', ''])
+
+  await ui.press({ key: 'accept' })
+  expect(entered).toEqual([IMPROVED])
+})
+
+test('건너뛰기 sends the prompt as typed', async ($, on) => {
+  const { entered } = engine(on, { replies: [QUESTION_1] })
+  await $.prompt.submit(typed(ORIGINAL))
+
+  await (await $.ui.mount(band())).press({ key: 'skip' })
+  expect(entered).toEqual([ORIGINAL])
+  expect(await (await $.ui.mount(band())).find({ key: 'skip' })).toBeUndefined()
+})
+
+test('after three answers the model may not ask again; if it does, the prompt goes as typed', async ($, on) => {
+  const { entered, asked } = engine(on, { replies: [QUESTION_1, QUESTION_2, QUESTION_1, QUESTION_2] })
+  await $.prompt.submit(typed(ORIGINAL))
+  for (const answer of ['첫째 답', '둘째 답', '셋째 답']) await $.prompt.submit(typed(answer))
+
+  expect(asked[2]).not.toContain('Do not ask any more questions')
+  expect(asked[3]).toContain('Do not ask any more questions')
+  expect(entered).toEqual([ORIGINAL])
+  expect(await (await $.ui.mount(band())).find({ key: 'skip' })).toBeUndefined()
 })
 
 test('거부 sends the prompt as typed', async ($, on) => {
